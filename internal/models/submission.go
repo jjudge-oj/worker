@@ -17,19 +17,7 @@ const (
 	VerdictInternalError       Verdict = "IE"
 )
 
-type Problem struct {
-	ID          int64      `json:"id" db:"id"`
-	Title       string     `json:"title" db:"title"`
-	Description string     `json:"description" db:"description"`
-	Difficulty  int        `json:"difficulty" db:"difficulty"`
-	TimeLimit   int64      `json:"time_limit" db:"time_limit"`
-	MemoryLimit int64      `json:"memory_limit" db:"memory_limit"`
-	Testcases   []Testcase `json:"test_cases" db:"test_cases"`
-	Tags        []string   `json:"tags" db:"tags"`
-	CreatedAt   time.Time  `json:"created_at" db:"created_at"`
-	UpdatedAt   time.Time  `json:"updated_at" db:"updated_at"`
-}
-
+// Submission represents a user's submission to a problem
 type Submission struct {
 	ID            int64     `json:"id" db:"id"`
 	ProblemID     int64     `json:"problem_id" db:"problem_id"`
@@ -47,21 +35,9 @@ type Submission struct {
 	UpdatedAt     time.Time `json:"updated_at" db:"updated_at"`
 }
 
-// Testcase represents a single test case for a problem
-type Testcase struct {
-	ID         int64  `json:"id" db:"id"`
-	ProblemID  int64  `json:"problem_id" db:"problem_id"`
-	Input      string `json:"input" db:"input"`
-	InputFile  string `json:"input_file" db:"input_file"`
-	Output     string `json:"output" db:"output"`
-	OutputFile string `json:"output_file" db:"output_file"`
-	IsHidden   bool   `json:"is_hidden" db:"is_hidden"`
-	Points     int    `json:"points" db:"points"`
-}
-
 // TestcaseResult represents the result of running a single test case
 type TestcaseResult struct {
-	TestcaseID     int64   `json:"testcase_id"`
+	TestcaseID     int     `json:"testcase_id"`
 	Verdict        Verdict `json:"verdict"`
 	ExecutionTime  int64   `json:"execution_time"`
 	MemoryUsed     int64   `json:"memory_used"`
@@ -79,16 +55,6 @@ type ExecutionResult struct {
 	ExecutionTime int64            `json:"execution_time"`
 	MemoryUsed    int64            `json:"memory_used"`
 	Message       string           `json:"message,omitempty"`
-}
-
-// User represents a user in the system
-type User struct {
-	ID        int64     `json:"id" db:"id"`
-	Username  string    `json:"username" db:"username"`
-	Email     string    `json:"email" db:"email"`
-	Name      string    `json:"name" db:"name"`
-	CreatedAt time.Time `json:"created_at" db:"created_at"`
-	UpdatedAt time.Time `json:"updated_at" db:"updated_at"`
 }
 
 // Language represents a supported programming language
