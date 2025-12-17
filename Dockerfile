@@ -21,7 +21,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 COPY scripts/rootfs.sh /tmp/rootfs.sh
 RUN chmod +x /tmp/rootfs.sh \
-    && IMAGES_DIR=/var/castletown/images /tmp/rootfs.sh
+    && JUDGE_IMAGES_DIR=/var/castletown/images /tmp/rootfs.sh
 
 FROM debian:13-slim AS runtime
 ENV DEBIAN_FRONTEND=noninteractive
@@ -48,11 +48,12 @@ RUN chmod +x /usr/local/bin/castletown-entrypoint /opt/castletown/scripts/rootfs
 ENV CASTLETOWN_SKIP_ROOTFS=1 \
     BLOB_ROOT=/var/castletown/blobs \
     WORK_ROOT=/tmp/castletown/work \
-    IMAGES_DIR=/var/castletown/images \
-    OVERLAYFS_DIR=/tmp/castletown/overlayfs \
+    JUDGE_IMAGES_DIR=/var/castletown/images \
+    JUDGE_OVERLAYFS_DIR=/tmp/castletown/overlayfs \
     STORAGE_DIR=/tmp/castletown/storage \
-    LIBCONTAINER_DIR=/tmp/castletown/libcontainer \
-    ROOTFS_DIR=/tmp/castletown/rootfs \
+    JUDGE_LIBCONTAINER_DIR=/tmp/castletown/libcontainer \
+    JUDGE_ROOTFS_DIR=/tmp/castletown/rootfs \
+    JUDGE_DISK_CACHE_DIR=/var/castletown/testcases \
     PROBLEM_CACHE_DIR=/var/castletown/problems
 
 ENTRYPOINT ["/usr/bin/tini","--","castletown-entrypoint"]

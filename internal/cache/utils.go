@@ -6,11 +6,12 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path"
 	"path/filepath"
 	"strings"
 )
 
-func untarGzReader(r io.Reader, dest string) error {
+func untarGzReader(r io.Reader, dest string, problemID int) error {
 	const (
 		maxFiles      = 200_000
 		maxFileSize   = int64(1 << 30) // 1 GiB
@@ -29,6 +30,25 @@ func untarGzReader(r io.Reader, dest string) error {
 	var total int64
 
 	cleanDest := filepath.Clean(dest) + string(os.PathSeparator)
+	problemDir := fmt.Sprintf("%d", problemID)
+
+	// Rewrite any top-level directory name in the archive to the problem ID.
+	rewriteTarget := func(hdr *tar.Header) string {
+		normalized := strings.ReplaceAll(hdr.Name, "\\", "/")
+		cleanName := path.Clean(normalized)
+		cleanName = strings.TrimPrefix(cleanName, "/")
+		if cleanName == "." {
+			return problemDir
+		}
+		parts := strings.SplitN(cleanName, "/", 2)
+		if len(parts) == 1 {
+			if hdr.FileInfo() != nil && hdr.FileInfo().IsDir() {
+				return problemDir
+			}
+			return filepath.Join(problemDir, parts[0])
+		}
+		return filepath.Join(problemDir, parts[1])
+	}
 
 	for {
 		hdr, err := tr.Next()
@@ -52,7 +72,7 @@ func untarGzReader(r io.Reader, dest string) error {
 			return fmt.Errorf("archive too large (uncompressed)")
 		}
 
-		target := filepath.Join(dest, hdr.Name)
+		target := filepath.Join(dest, rewriteTarget(hdr))
 		cleanTarget := filepath.Clean(target)
 
 		if !strings.HasPrefix(cleanTarget, cleanDest) {
@@ -86,5 +106,6 @@ func untarGzReader(r io.Reader, dest string) error {
 			// Skip symlinks/devices/etc.
 		}
 	}
+
 	return nil
 }

@@ -17,11 +17,11 @@ package main
 
 import (
 	"github.com/joshjms/castletown/cmd"
-	"github.com/joshjms/castletown/internal/sandbox"
+	"github.com/joshjms/castletown/internal/container"
 )
 
 func init() {
-	sandbox.Init()
+	container.Init()
 }
 
 func main() {

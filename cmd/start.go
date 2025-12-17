@@ -17,7 +17,10 @@ var startCmd = &cobra.Command{
 	Short: "Start the Castletown worker",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		cfg := config.Load()
-		w := worker.NewWorker(cfg)
+		w, err := worker.NewWorker(cfg)
+		if err != nil {
+			return err
+		}
 
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()

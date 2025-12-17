@@ -17,6 +17,7 @@ type Problem struct {
 
 type TestcaseGroup struct {
 	ID        int        `json:"id" db:"id"`
+	OrderID   int        `json:"order_id" db:"order_id"`
 	ProblemID int        `json:"problem_id" db:"problem_id"`
 	Name      string     `json:"name" db:"name"`
 	Testcases []Testcase `json:"testcases" db:"testcases"`
@@ -24,9 +25,10 @@ type TestcaseGroup struct {
 }
 
 type Testcase struct {
-	ID        int    `json:"id" db:"id"`
-	ProblemID int    `json:"problem_id" db:"problem_id"`
-	Input     string `json:"input" db:"input"`
-	Output    string `json:"output" db:"output"`
-	IsHidden  bool   `json:"is_hidden" db:"is_hidden"`
+	ID              int    `json:"id" db:"id"`
+	OrderID         int    `json:"order_id" db:"order_id"`
+	TestcaseGroupID int    `json:"testcase_group_id" db:"testcase_group_id"`
+	Input           string `json:"input" db:"input"`
+	Output          string `json:"output" db:"output"`
+	IsHidden        bool   `json:"is_hidden" db:"is_hidden"`
 }

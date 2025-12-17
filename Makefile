@@ -59,7 +59,7 @@ test-worker: make-rootfs
 	@echo "Running worker tests..."
 	sudo env "PATH=$$PATH:/usr/local/go/bin" go test github.com/joshjms/castletown/internal/worker -v
 
-.PHONY: test-sandbox
-test-sandbox: make-rootfs
-	@echo "Running sandbox tests..."
-	sudo env "PATH=$$PATH:/usr/local/go/bin" go test github.com/joshjms/castletown/internal/sandbox -v
+.PHONY: test-container
+test-container: make-rootfs
+	@echo "Running container tests..."
+	sudo env "PATH=$$PATH:/usr/local/go/bin" go test github.com/joshjms/castletown/internal/container -v

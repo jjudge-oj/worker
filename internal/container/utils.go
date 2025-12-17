@@ -66,7 +66,7 @@ func runContainer(ctx context.Context, runtimeCfg *config.Config, cfg *Config) (
 }
 
 func newOverlay(runtimeCfg *config.Config, rootfsImageDir string) (*Overlay, error) {
-	base := filepath.Join(runtimeCfg.OverlayFSDir, uuid.NewString())
+	base := filepath.Join(runtimeCfg.Judge.OverlayFSDir, uuid.NewString())
 	overlay, err := NewOverlay(base, rootfsImageDir)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create overlay: %w", err)
@@ -78,27 +78,27 @@ func newOverlay(runtimeCfg *config.Config, rootfsImageDir string) (*Overlay, err
 func resolveRootfsImageDir(t *testing.T, cfg *config.Config) string {
 	t.Helper()
 
-	defaultImagePath := filepath.Join(cfg.ImagesDir, "gcc-15-bookworm")
+	defaultImagePath := filepath.Join(cfg.Judge.ImagesDir, "gcc-15-bookworm")
 	if _, err := os.Stat(defaultImagePath); err == nil {
 		return defaultImagePath
 	}
 
-	entries, err := os.ReadDir(cfg.ImagesDir)
-	require.NoError(t, err, "failed to read images dir %s", cfg.ImagesDir)
+	entries, err := os.ReadDir(cfg.Judge.ImagesDir)
+	require.NoError(t, err, "failed to read images dir %s", cfg.Judge.ImagesDir)
 
 	for _, entry := range entries {
 		if entry.IsDir() {
-			return filepath.Join(cfg.ImagesDir, entry.Name())
+			return filepath.Join(cfg.Judge.ImagesDir, entry.Name())
 		}
 	}
 
-	t.Fatalf("no rootfs image directory found in %s; run scripts/rootfs.sh to populate one", cfg.ImagesDir)
+	t.Fatalf("no rootfs image directory found in %s; run scripts/rootfs.sh to populate one", cfg.Judge.ImagesDir)
 	return ""
 }
 
 func prepareRuntimeDirs(t *testing.T, cfg *config.Config) {
 	t.Helper()
 
-	require.NoError(t, os.MkdirAll(cfg.LibcontainerDir, 0o755))
-	require.NoError(t, os.MkdirAll(cfg.OverlayFSDir, 0o755))
+	require.NoError(t, os.MkdirAll(cfg.Judge.LibcontainerDir, 0o755))
+	require.NoError(t, os.MkdirAll(cfg.Judge.OverlayFSDir, 0o755))
 }

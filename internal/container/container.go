@@ -57,7 +57,7 @@ func (c *Container) Init(ctx context.Context) error {
 		return fmt.Errorf("error creating libcontainer config: %w", err)
 	}
 
-	container, err := libcontainer.Create(c.runtimeCfg.LibcontainerDir, c.id, libcontainerConfig)
+	container, err := libcontainer.Create(c.runtimeCfg.Judge.LibcontainerDir, c.id, libcontainerConfig)
 	if err != nil {
 		return fmt.Errorf("error creating container: %w", err)
 	}

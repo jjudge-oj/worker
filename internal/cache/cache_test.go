@@ -19,9 +19,9 @@ func TestProblemCache(t *testing.T) {
 	tcs, err := store.NewTestcaseStore(cfg.Minio)
 	require.NoError(t, err, "cannot create minio store: %v", err)
 
-	var problemID = 2
+	var problemID = 1
 
-	pc := NewProblemCache(pr, tcs, 5, cfg.DiskCacheDir)
+	pc := NewProblemCache(pr, tcs, 5, cfg.Judge.DiskCacheDir)
 	require.NotNil(t, pc, "problem cache should not be nil")
 
 	_, release, err := pc.GetProblemWithLease(context.Background(), problemID)

@@ -12,7 +12,7 @@ import (
 	"github.com/joshjms/castletown/internal/models"
 	"github.com/joshjms/castletown/internal/mq"
 	"github.com/joshjms/castletown/internal/repository"
-	"github.com/joshjms/castletown/internal/sandbox"
+	"github.com/joshjms/castletown/internal/store"
 	"github.com/joshjms/castletown/internal/telemetry"
 	"github.com/rs/zerolog"
 )
@@ -25,30 +25,44 @@ type Worker struct {
 	log     zerolog.Logger
 	metrics *telemetry.Metrics
 
-	sm *sandbox.Manager
-	g  SubmissionGrader
+	g SubmissionGrader
 
 	queueConsumer mq.Consumer
 }
 
-func NewWorker(cfg config.Config) *Worker {
-	sm := sandbox.NewManager(&cfg)
-	repo, _ := repository.NewPostgresRepository(cfg.Database.DSN)
-	_ = os.MkdirAll(cfg.ProblemCacheDir, 0755)
-	store := cache.NewProblemStore(repo, 256, cfg.ProblemCacheDir)
+func NewWorker(cfg *config.Config) (*Worker, error) {
+	problemsRepo, err := repository.NewProblemsRepository(cfg.Database)
+	if err != nil {
+		return nil, fmt.Errorf("create problems repository: %w", err)
+	}
+
+	submissionsRepo, err := repository.NewSubmissionsRepository(cfg.Database)
+	if err != nil {
+		return nil, fmt.Errorf("create submissions repository: %w", err)
+	}
+
+	testcaseStore, err := store.NewTestcaseStore(cfg.Minio)
+	if err != nil {
+		return nil, fmt.Errorf("create testcase store: %w", err)
+	}
+
+	if err := os.MkdirAll(cfg.Judge.DiskCacheDir, 0755); err != nil {
+		return nil, fmt.Errorf("create disk cache dir: %w", err)
+	}
+
+	problemCache := cache.NewProblemCache(problemsRepo, testcaseStore, 256, cfg.Judge.DiskCacheDir)
 
 	log := zerolog.New(os.Stdout).With().Timestamp().Logger()
 
 	w := &Worker{
 		log:     log,
 		metrics: telemetry.NewMetricsRegistry(),
-		sm:      sm,
-		g:       grader.NewGrader(log, cfg, sm, repo, store),
+		g:       grader.NewGrader(log, cfg, submissionsRepo, problemCache),
 	}
 
-	w.queueConsumer = mq.NewConsumer(cfg.RabbitMQ, log, cfg.MaxParallelSandboxes)
+	w.queueConsumer = mq.NewConsumer(cfg.RabbitMQ, log, cfg.Judge.MaxConcurrency)
 
-	return w
+	return w, nil
 }
 
 func (w *Worker) Run(ctx context.Context) error {
@@ -74,5 +88,11 @@ func (w *Worker) handleQueueMessage(ctx context.Context, body []byte) error {
 		return fmt.Errorf("invalid submission payload: %w", err)
 	}
 	w.log.Info().Int64("submission_id", sub.ID).Msg("Processing submission")
-	return w.handle(ctx, &sub)
+	if err := w.handle(ctx, &sub); err != nil {
+		w.log.Error().Err(err).Int64("submission_id", sub.ID).Msg("Failed to process submission")
+		return fmt.Errorf("handle submission: %w", err)
+	}
+	w.log.Info().Int64("submission_id", sub.ID).Msg("Finished processing submission")
+	w.log.Info().Any("submission", sub).Msg("Submission result")
+	return nil
 }

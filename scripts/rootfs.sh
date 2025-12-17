@@ -4,7 +4,9 @@ set -euo pipefail
 
 IMAGE_REF=${CASTLETOWN_IMAGE_REF:-"gcc:15-bookworm"}
 IMAGE_NAME=${CASTLETOWN_IMAGE_NAME:-"gcc-15-bookworm"}
-IMAGES_DIR=${IMAGES_DIR:-"/var/castletown/images"}
+# Prefer the env var name used by internal/config (JUDGE_IMAGES_DIR), but
+# fall back to the legacy IMAGES_DIR if set.
+IMAGES_DIR=${JUDGE_IMAGES_DIR:-${IMAGES_DIR:-"/var/castletown/images"}}
 TMP_DIR=${CASTLETOWN_TMP_DIR:-"/tmp"}
 
 mkdir -p "${IMAGES_DIR}"

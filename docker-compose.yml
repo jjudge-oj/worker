@@ -7,14 +7,29 @@ services:
     privileged: true
     cgroup: host
     environment:
-      DATABASE_DSN: user=castletown password=castletown dbname=castletown host=postgres port=5432 sslmode=disable
+      ENV: dev
+      DATABASE_HOST: postgres
+      DATABASE_PORT: 5432
+      DATABASE_USER: castletown
+      DATABASE_PASSWORD: castletown
+      DATABASE_NAME: castletown
+      DATABASE_SSLMODE: disable
       RABBITMQ_URL: amqp://castletown:castletown@rabbitmq:5672/
       RABBITMQ_QUEUE: submissions
       MINIO_ENDPOINT: minio:9000
       MINIO_ACCESS_KEY: minioadmin
       MINIO_SECRET_KEY: minioadmin
       MINIO_BUCKET: castletown
+      MINIO_USE_SSL: "false"
       METRICS_ADDR: ":9090"
+      JUDGE_DISK_CACHE_DIR: /var/castletown/testcases
+      JUDGE_SUBMISSIONS_DIR: /var/castletown/submissions
+      JUDGE_LIBCONTAINER_DIR: /tmp/castletown/libcontainer
+      JUDGE_IMAGES_DIR: /var/castletown/images
+      JUDGE_ROOTFS_DIR: /tmp/castletown/rootfs
+      JUDGE_OVERLAYFS_DIR: /tmp/castletown/overlayfs
+      JUDGE_WORK_ROOT: /tmp/castletown/work
+      JUDGE_MAX_CONCURRENCY: 2
     volumes:
       - /sys/fs/cgroup:/sys/fs/cgroup:rw
       - castletown-work:/tmp/castletown/work
@@ -25,6 +40,8 @@ services:
       - castletown-blobs:/var/castletown/blobs
       - castletown-images:/var/castletown/images
       - castletown-problems:/var/castletown/problems
+      - castletown-testcases:/var/castletown/testcases
+      - castletown-submissions:/var/castletown/submissions
     depends_on:
       postgres:
         condition: service_healthy
@@ -112,6 +129,10 @@ volumes:
   castletown-images:
     driver: local
   castletown-problems:
+    driver: local
+  castletown-testcases:
+    driver: local
+  castletown-submissions:
     driver: local
 
 networks:

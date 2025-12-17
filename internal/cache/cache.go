@@ -104,6 +104,10 @@ func (pc *ProblemCache) GetProblem(ctx context.Context, id int) (*models.Problem
 	return cloneProblem(problem), nil
 }
 
+func (pc *ProblemCache) GetCacheDir() string {
+	return pc.cacheDir
+}
+
 func (pc *ProblemCache) getFromCache(id int) (*models.Problem, bool) {
 	pc.mu.Lock()
 	defer pc.mu.Unlock()
@@ -189,7 +193,7 @@ func (pc *ProblemCache) retrieveTestcasesFromObjectStore(id int) error {
 	}
 	defer r.Close()
 
-	if err := untarGzReader(r, pc.cacheDir); err != nil {
+	if err := untarGzReader(r, pc.cacheDir, id); err != nil {
 		_ = os.RemoveAll(filepath.Join(pc.cacheDir, fmt.Sprintf("%d", id)))
 		return err
 	}

@@ -8,59 +8,104 @@ import (
 )
 
 type Config struct {
-	Env                  string
-	DiskCacheDir         string
-	DiskCacheMaxBytes    int64
-	RamCacheMaxBytes     int64
-	RamHotFileMaxBytes   int64
-	BlobRoot             string
-	ResultsURL           string
-	WorkRoot             string
-	ImagesDir            string
-	OverlayFSDir         string
-	StorageDir           string
-	LibcontainerDir      string
-	RootfsDir            string
-	ServerPort           int
-	MaxParallelSandboxes int
-	MetricsAddr          string
-	QueuePollInterval    time.Duration
-	Database             DatabaseConfig
-	RabbitMQ             RabbitMQConfig
-	ProblemCacheDir      string
+	Env               string
+	ResultsURL        string
+	WorkRoot          string
+	RootfsDir         string
+	ServerPort        int
+	MetricsAddr       string
+	QueuePollInterval time.Duration
+	Judge             JudgeConfig
+	Database          DatabaseConfig
+	RabbitMQ          RabbitMQConfig
+	ProblemCacheDir   string
+	DatabaseURL       string
+	Minio             MinioConfig
+}
+
+type ServerConfig struct {
+}
+
+type JudgeConfig struct {
+	DiskCacheDir    string
+	SubmissionsDir  string
+	LibcontainerDir string
+	ImagesDir       string
+	OverlayFSDir    string
+	RootfsDir       string
+	WorkRoot        string
+	MaxConcurrency  int
 }
 
 type DatabaseConfig struct {
-	DSN string
+	Host     string
+	Port     int
+	User     string
+	Password string
+	Name     string
+	SSLMode  string
+}
+
+func (d DatabaseConfig) DSN() string {
+	return fmt.Sprintf(
+		"user=%s password=%s dbname=%s host=%s port=%d sslmode=%s",
+		d.User,
+		d.Password,
+		d.Name,
+		d.Host,
+		d.Port,
+		d.SSLMode,
+	)
 }
 
 type RabbitMQConfig struct {
-	URL      string
-	Queue    string
+	URL   string
+	Queue string
 }
 
-func Load() Config {
-	return Config{
-		Env:                  get("ENV", "dev"),
-		BlobRoot:             get("BLOB_ROOT", "/var/castletown/blobs"),
-		ResultsURL:           get("RESULTS_URL", "http://backend/results"),
-		WorkRoot:             get("WORK_ROOT", "/tmp/castletown/work"),
-		ImagesDir:            get("IMAGES_DIR", "/tmp/castletown/images"),
-		OverlayFSDir:         get("OVERLAYFS_DIR", "/tmp/castletown/overlayfs"),
-		StorageDir:           get("STORAGE_DIR", "/tmp/castletown/storage"),
-		LibcontainerDir:      get("LIBCONTAINER_DIR", "/tmp/castletown/libcontainer"),
-		RootfsDir:            get("ROOTFS_DIR", "/tmp/castletown/rootfs"),
-		ServerPort:           getInt("SERVER_PORT", 8000),
-		MaxParallelSandboxes: getInt("MAX_PARALLEL_SANDBOXES", runtime.NumCPU()),
-		MetricsAddr:          get("METRICS_ADDR", ":9090"),
-		QueuePollInterval:    time.Duration(getInt64("QUEUE_POLL_MS", 200)) * time.Millisecond,
+type MinioConfig struct {
+	Endpoint  string
+	AccessKey string
+	SecretKey string
+	Bucket    string
+	UseSSL    bool
+}
+
+func Load() *Config {
+	return &Config{
+		Env:               get("ENV", "dev"),
+		ResultsURL:        get("RESULTS_URL", "http://backend/results"),
+		ServerPort:        getInt("SERVER_PORT", 8000),
+		MetricsAddr:       get("METRICS_ADDR", ":9090"),
+		QueuePollInterval: time.Duration(getInt64("QUEUE_POLL_MS", 200)) * time.Millisecond,
 		RabbitMQ: RabbitMQConfig{
 			URL:   get("RABBITMQ_URL", "amqp://castletown:castletown@localhost:5672/"),
 			Queue: get("RABBITMQ_QUEUE", "submissions"),
 		},
-		ProblemCacheDir: get("PROBLEM_CACHE_DIR", "/var/castletown/problems"),
 		Database: DatabaseConfig{
-			DSN: get("DATABASE_DSN", "user=castletown password=castletown dbname=castletown host=localhost port=5432 sslmode=disable"),
+			Host:     get("DATABASE_HOST", "localhost"),
+			Port:     getInt("DATABASE_PORT", 5432),
+			User:     get("DATABASE_USER", "castletown"),
+			Password: get("DATABASE_PASSWORD", "castletown"),
+			Name:     get("DATABASE_NAME", "castletown"),
+			SSLMode:  get("DATABASE_SSLMODE", "disable"),
+		},
+		Minio: MinioConfig{
+			Endpoint:  get("MINIO_ENDPOINT", "localhost:9000"),
+			AccessKey: get("MINIO_ACCESS_KEY", "minioadmin"),
+			SecretKey: get("MINIO_SECRET_KEY", "minioadmin"),
+			Bucket:    get("MINIO_BUCKET", "castletown"),
+			UseSSL:    get("MINIO_USE_SSL", "false") == "true",
+		},
+		Judge: JudgeConfig{
+			DiskCacheDir:    get("JUDGE_DISK_CACHE_DIR", "/var/castletown/testcases"),
+			MaxConcurrency:  getInt("JUDGE_MAX_CONCURRENCY", runtime.NumCPU()),
+			SubmissionsDir:  get("JUDGE_SUBMISSIONS_DIR", "/var/castletown/submissions"),
+			LibcontainerDir: get("JUDGE_LIBCONTAINER_DIR", "/var/castletown/libcontainer"),
+			ImagesDir:       get("JUDGE_IMAGES_DIR", "/var/castletown/images"),
+			RootfsDir:       get("JUDGE_ROOTFS_DIR", "/tmp/castletown/rootfs"),
+			WorkRoot:        get("JUDGE_WORK_ROOT", "/tmp/castletown/work"),
+			OverlayFSDir:    get("JUDGE_OVERLAYFS_DIR", "/tmp/castletown/overlayfs"),
 		},
 	}
 }
