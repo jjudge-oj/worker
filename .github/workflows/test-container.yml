@@ -1,4 +1,4 @@
-name: Test E2E
+name: Test Container
 
 on:
   push:
@@ -26,10 +26,10 @@ jobs:
           chmod +x umoci
           sudo mv umoci /usr/local/bin/umoci
 
-          wget https://go.dev/dl/go1.25.1.linux-amd64.tar.gz
-          sudo tar -C /usr/local -xzf go1.25.1.linux-amd64.tar.gz
+          wget https://go.dev/dl/go1.25.5.linux-amd64.tar.gz
+          sudo tar -C /usr/local -xzf go1.25.5.linux-amd64.tar.gz
           export PATH=$PATH:/usr/local/go/bin
           go version
 
-      - name: Run e2e tests
-        run: make test-e2e
+      - name: Run container tests
+        run: make test-container
