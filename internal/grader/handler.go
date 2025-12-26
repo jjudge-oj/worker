@@ -168,6 +168,7 @@ func (g *Grader) compileCpp(ctx context.Context, sub *models.Submission, workDir
 
 	compileArgs := []string{"g++", "-O2", "-std=c++20", "-o", "main", "main.cpp"}
 	return container.RunInContainer(
+		ctx,
 		g.runtimeCfg,
 		g.slotPool,
 		workDir,
@@ -194,6 +195,7 @@ func (g *Grader) executeCpp(ctx context.Context, timeLimitUs, memoryLimitBytes i
 
 	execArgs := []string{"./main"}
 	report, err := container.RunInContainer(
+		ctx,
 		g.runtimeCfg,
 		g.slotPool,
 		submissionDir,

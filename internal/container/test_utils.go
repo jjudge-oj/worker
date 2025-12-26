@@ -95,7 +95,7 @@ func runCompile(t *testing.T, runtimeCfg *config.Config, sp *SlotPool, workDir, 
 
 	defaultCompileTimeoutUs := int64(10 * 1000 * 1000)
 
-	return RunInContainer(runtimeCfg, sp, workDir, rootfsImageDir, []string{"g++", "-o", "main", "main.cpp"}, &bytes.Buffer{}, defaultCompileTimeoutUs, defaultMemoryLimitBytes, 64)
+	return RunInContainer(t.Context(), runtimeCfg, sp, workDir, rootfsImageDir, []string{"g++", "-o", "main", "main.cpp"}, &bytes.Buffer{}, defaultCompileTimeoutUs, defaultMemoryLimitBytes, 64)
 }
 
 func runExecution(t *testing.T, tc *Testcase, runtimeCfg *config.Config, sp *SlotPool, workDir, rootfsImageDir string) (*Report, error) {
@@ -106,5 +106,5 @@ func runExecution(t *testing.T, tc *Testcase, runtimeCfg *config.Config, sp *Slo
 		stdin.WriteString(tc.Stdin)
 	}
 
-	return RunInContainer(runtimeCfg, sp, workDir, rootfsImageDir, []string{"./main"}, stdin, tc.TimeLimitUs, defaultMemoryLimitBytes, 1)
+	return RunInContainer(t.Context(), runtimeCfg, sp, workDir, rootfsImageDir, []string{"./main"}, stdin, tc.TimeLimitUs, defaultMemoryLimitBytes, 1)
 }

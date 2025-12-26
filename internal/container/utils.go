@@ -13,7 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func RunInContainer(runtimeCfg *config.Config, sp *SlotPool, workDir, rootfsImageDir string, args []string, stdin io.Reader, timeLimitUs int64, memoryLimitBytes int64, maxProcs int64) (*Report, error) {
+func RunInContainer(ctx context.Context, runtimeCfg *config.Config, sp *SlotPool, workDir, rootfsImageDir string, args []string, stdin io.Reader, timeLimitUs int64, memoryLimitBytes int64, maxProcs int64) (*Report, error) {
 	allocation, err := sp.Allocate(context.Background())
 	if err != nil {
 		return nil, fmt.Errorf("failed to allocate slot: %w", err)
@@ -36,7 +36,7 @@ func RunInContainer(runtimeCfg *config.Config, sp *SlotPool, workDir, rootfsImag
 	cfg.Overlay = overlay
 	cfg.UseAllocation(allocation)
 
-	return runContainer(context.Background(), runtimeCfg, cfg)
+	return runContainer(ctx, runtimeCfg, cfg)
 }
 
 func runContainer(ctx context.Context, runtimeCfg *config.Config, cfg *Config) (*Report, error) {
