@@ -72,10 +72,13 @@ func (c *Container) makeReport(stdoutBuf, stderrBuf io.Reader, state *os.Process
 
 	var status Status
 
+	cpuUsageUs := stats.GetCPU().GetUsageUsec()
+	memoryMaxUsage := stats.GetMemory().GetMaxUsage()
+
 	switch {
-	case timeLimitExceeded || stats.GetCPU().GetUsageUsec() > uint64(c.config.TimeLimitUs)*1000000:
+	case timeLimitExceeded || cpuUsageUs > uint64(c.config.TimeLimitUs):
 		status = STATUS_TIME_LIMIT_EXCEEDED
-	case stats.GetMemory().GetMaxUsage() > uint64(c.config.MemoryLimitBytes):
+	case memoryMaxUsage > uint64(c.config.MemoryLimitBytes):
 		status = STATUS_MEMORY_LIMIT_EXCEEDED
 	case state.ExitCode() != 0:
 		status = STATUS_RUNTIME_ERROR
@@ -89,8 +92,8 @@ func (c *Container) makeReport(stdoutBuf, stderrBuf io.Reader, state *os.Process
 		Signal:   state.Sys().(syscall.WaitStatus).Signal(),
 		Stdout:   string(stdout),
 		Stderr:   string(stderr),
-		CPUTime:  stats.GetCPU().GetUsageUsec(),
-		Memory:   stats.GetMemory().GetMaxUsage(),
+		CPUTime:  cpuUsageUs,
+		Memory:   memoryMaxUsage,
 		StartAt:  startAt,
 		FinishAt: finishAt,
 	}, nil
